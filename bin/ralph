@@ -12,6 +12,7 @@ PROGRESS_FILE="$WORKING_DIR/progress.md"
 ARCHIVE_DIR="$WORKING_DIR/archive"
 LAST_BRANCH_FILE="$WORKING_DIR/.last-branch"
 MODEL="${OPENCODE_MODEL:-opencode/grok-code}"
+OPENCODE_CONFIG="$SCRIPT_DIR/opencode.ralph.json"
 
 # Archive previous run if branch changed
 if [ -f "$PRD_FILE" ] && [ -f "$LAST_BRANCH_FILE" ]; then
@@ -68,7 +69,7 @@ for i in $(seq 1 $MAX_ITERATIONS); do
    fi
 
   # Run opencode with the ralph prompt
-  OUTPUT=$(opencode run --model="$MODEL" "$(cat "$WORKING_DIR/prompt.md")" 2>&1 | tee /dev/stderr) || true
+  OUTPUT=$(OPENCODE_CONFIG="$OPENCODE_CONFIG" opencode run --model="$MODEL" "$(cat "$WORKING_DIR/prompt.md")" 2>&1 | tee /dev/stderr) || true
   
   # Check for completion signal
   if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then
