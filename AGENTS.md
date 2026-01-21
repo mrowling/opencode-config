@@ -8,7 +8,7 @@ Ralph is an autonomous AI agent loop that runs opencode repeatedly until all PRD
 
 ```bash
 # Run Ralph (from your project that has prd.json)
-ralph [max_iterations]
+ralph [max_iterations] (default: unlimited)
 ```
 
 ## Key Files

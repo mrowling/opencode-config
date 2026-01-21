@@ -1,10 +1,15 @@
 #!/bin/bash
 # Ralph Wiggum - Long-running AI agent loop
-# Usage: ./ralph.sh [max_iterations]
+# Usage: ./ralph [max_iterations] (default: unlimited)
 
 set -e
 
-MAX_ITERATIONS=${1:-10}
+ARG=${1:-unlimited}
+if [ "$ARG" = "unlimited" ]; then
+  MAX_ITERATIONS="unlimited"
+else
+  MAX_ITERATIONS=$ARG
+fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKING_DIR="$(pwd)"
 PRD_FILE="$WORKING_DIR/prd.json"
@@ -56,34 +61,48 @@ fi
 
 echo "Starting Ralph - Max iterations: $MAX_ITERATIONS"
 
-for i in $(seq 1 $MAX_ITERATIONS); do
+i=1
+while true; do
   echo ""
-   echo "═══════════════════════════════════════════════════════"
-   echo "  Ralph Iteration $i of $MAX_ITERATIONS" using model "$MODEL"
-   echo "═══════════════════════════════════════════════════════"
+  echo "═══════════════════════════════════════════════════════"
+  if [ "$MAX_ITERATIONS" = "unlimited" ]; then
+    ITERATION_DISPLAY="$i (unlimited)"
+  else
+    ITERATION_DISPLAY="$i of $MAX_ITERATIONS"
+  fi
+  echo "  Ralph Iteration $ITERATION_DISPLAY" using model "$MODEL" working directory "$WORKING_DIR"
+  echo "═══════════════════════════════════════════════════════"
 
-   # Check if prompt.md exists in working directory, copy if not
-   if [ ! -f "$WORKING_DIR/prompt.md" ]; then
-      echo "prompt.md not found in working directory. Copying default prompt.md"
-      cp "$(dirname "$SCRIPT_DIR")/prompt.md" "$WORKING_DIR/prompt.md"
-   fi
+  # Check if prompt.md exists in working directory, copy if not
+  if [ ! -f "$WORKING_DIR/prompt.md" ]; then
+     echo "prompt.md not found in working directory. Copying default prompt.md"
+     cp "$(dirname "$SCRIPT_DIR")/prompt.md" "$WORKING_DIR/prompt.md"
+  fi
 
   # Run opencode with the ralph prompt
   OUTPUT=$(OPENCODE_CONFIG="$OPENCODE_CONFIG" opencode run --model="$MODEL" "$(cat "$WORKING_DIR/prompt.md")" 2>&1 | tee /dev/stderr) || true
-  
+
   # Check for completion signal
   if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then
     echo ""
     echo "Ralph completed all tasks!"
-    echo "Completed at iteration $i of $MAX_ITERATIONS"
+    if [ "$MAX_ITERATIONS" = "unlimited" ]; then
+      echo "Completed at iteration $i (unlimited)"
+    else
+      echo "Completed at iteration $i of $MAX_ITERATIONS"
+    fi
     exit 0
   fi
-  
+
+  # Check if we've reached max iterations (only for finite mode)
+  if [ "$MAX_ITERATIONS" != "unlimited" ] && [ $i -ge $MAX_ITERATIONS ]; then
+    echo ""
+    echo "Ralph reached max iterations ($MAX_ITERATIONS) without completing all tasks."
+    echo "Check $PROGRESS_FILE for status."
+    exit 1
+  fi
+
   echo "Iteration $i complete. Continuing..."
   sleep 2
+  i=$((i+1))
 done
-
-echo ""
-echo "Ralph reached max iterations ($MAX_ITERATIONS) without completing all tasks."
-echo "Check $PROGRESS_FILE for status."
-exit 1
