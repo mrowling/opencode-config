@@ -8,9 +8,10 @@ MAX_ITERATIONS=${1:-10}
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKING_DIR="$(pwd)"
 PRD_FILE="$WORKING_DIR/prd.json"
-PROGRESS_FILE="$WORKING_DIR/progress.txt"
+PROGRESS_FILE="$WORKING_DIR/progress.md"
 ARCHIVE_DIR="$WORKING_DIR/archive"
 LAST_BRANCH_FILE="$WORKING_DIR/.last-branch"
+MODEL="${OPENCODE_MODEL:-opencode/grok-code}"
 
 # Archive previous run if branch changed
 if [ -f "$PRD_FILE" ] && [ -f "$LAST_BRANCH_FILE" ]; then
@@ -57,7 +58,7 @@ echo "Starting Ralph - Max iterations: $MAX_ITERATIONS"
 for i in $(seq 1 $MAX_ITERATIONS); do
   echo ""
    echo "═══════════════════════════════════════════════════════"
-   echo "  Ralph Iteration $i of $MAX_ITERATIONS"
+   echo "  Ralph Iteration $i of $MAX_ITERATIONS" using model "$MODEL"
    echo "═══════════════════════════════════════════════════════"
 
    # Check if prompt.md exists in working directory, copy if not
@@ -66,8 +67,8 @@ for i in $(seq 1 $MAX_ITERATIONS); do
       cp "$(dirname "$SCRIPT_DIR")/prompt.md" "$WORKING_DIR/prompt.md"
    fi
 
-     # Run opencode with the ralph prompt
-     OUTPUT=$(opencode run "$(cat "$WORKING_DIR/prompt.md")" 2>&1 | tee /dev/stderr) || true
+  # Run opencode with the ralph prompt
+  OUTPUT=$(opencode run --model="$MODEL" "$(cat "$WORKING_DIR/prompt.md")" 2>&1 | tee /dev/stderr) || true
   
   # Check for completion signal
   if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then
