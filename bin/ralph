@@ -82,16 +82,24 @@ while true; do
   # Run opencode with the ralph prompt
   OUTPUT=$(OPENCODE_CONFIG="$OPENCODE_CONFIG" opencode run --model="$MODEL" "$(cat "$WORKING_DIR/prompt.md")" 2>&1 | tee /dev/stderr) || true
 
-  # Check for completion signal
-  if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then
-    echo ""
-    echo "Ralph completed all tasks!"
-    if [ "$MAX_ITERATIONS" = "unlimited" ]; then
-      echo "Completed at iteration $i (unlimited)"
-    else
-      echo "Completed at iteration $i of $MAX_ITERATIONS"
+  # Check for PRD completion
+  if [ -f "$PRD_FILE" ] && jq empty "$PRD_FILE" >/dev/null 2>&1; then
+    # PRD exists and is valid JSON
+    if jq -e 'all(.userStories[]; .passes == true)' "$PRD_FILE" >/dev/null; then
+      echo ""
+      echo "Ralph completed all tasks (all PRD stories pass)!"
+      if [ "$MAX_ITERATIONS" = "unlimited" ]; then
+        echo "Completed at iteration $i (unlimited)"
+      else
+        echo "Completed at iteration $i of $MAX_ITERATIONS"
+      fi
+      exit 0
     fi
-    exit 0
+  else
+    # PRD missing or malformed - exit
+    echo ""
+    echo "Ralph exited due to missing or malformed prd.json"
+    exit 1
   fi
 
   # Check if we've reached max iterations (only for finite mode)
