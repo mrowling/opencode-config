@@ -16,8 +16,15 @@ PRD_FILE="$WORKING_DIR/prd.json"
 PROGRESS_FILE="$WORKING_DIR/progress.md"
 ARCHIVE_DIR="$WORKING_DIR/archive"
 LAST_BRANCH_FILE="$WORKING_DIR/.last-branch"
-MODEL="${OPENCODE_MODEL:-opencode/grok-code}"
+MODEL="${OPENCODE_MODEL:-opencode/big-pickle}"
+AGENTS_FILE="$WORKING_DIR/AGENTS.md"
+BASE_AGENTS_FILE="$SCRIPT_DIR/AGENTS.md"
 OPENCODE_CONFIG="$SCRIPT_DIR/opencode.ralph.json"
+
+# If AGENTS.md doesn't exist in working directory, copy default
+if [ ! -f "$AGENTS_FILE" ]; then
+  cp "$BASE_AGENTS_FILE" "$AGENTS_FILE"
+fi
 
 # Archive previous run if branch changed
 if [ -f "$PRD_FILE" ] && [ -f "$LAST_BRANCH_FILE" ]; then
