@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Program to run inside tmux (change if your real entrypoint differs)
+CMD="${1:-opencode}"
+shift || true
+# Unique session name (timestamp + pid)
+SESSION="opencode-$(basename "$PWD")-$(date +%Y%m%d-%H%M%S)-$$"
+if ! command -v tmux >/dev/null 2>&1; then
+  echo "tmux not installed; running $CMD directly"
+  exec "$CMD" "$@"
+fi
+echo "Starting new tmux session: $SESSION"
+# Replace this script with tmux process so user's shell isn't left waiting
+exec tmux new-session -s "$SESSION" "$CMD" "$@"
