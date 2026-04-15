@@ -1,7 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "server": {
-    "port": 9000
   },
   "provider": {
     "ollama": {
@@ -31,6 +30,10 @@
     }
   },
   "permission": {
+    "bash": {
+      "git push": "ask",
+      "git push *": "ask"
+    },
     "read": {
       "~/.config/opencode/get-shit-done/*": "allow"
     },
