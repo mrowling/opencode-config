@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "markitdown",
+  "owner": "k-dense-ai",
+  "repo": "claude-scientific-writer",
+  "path": ".claude/skills/markitdown",
+  "branch": "main",
+  "sha": "c34901af08a5dac40ec9035b4706e5c09c91d1b7",
+  "source": "manual"
+}
